@@ -189,8 +189,8 @@ def generatesong(disney, gender, url):
 
 	year, genre = year_genre
 	
-	genre = re.sub("[\[\<].*?[\>\]]", "", genre).strip()
 	genre = html.unescape(genre).strip()
+	genre = re.sub("[\[\<].*?[\>\]]", "", genre).strip()
 
 	return Song(title, year, genre, artists, gender, disney, lyrics)
 

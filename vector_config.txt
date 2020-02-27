@@ -1,5 +1,0 @@
-Max top-factors:
-years	= 25
-genres	= 100
-artists	= 100
-tokens	= 2000

@@ -14,6 +14,8 @@ class Song():
 	genredict = dict()
 	artistdict = dict()
 	tokendict = dict()
+	disneycount = 0
+	nondisneycount = 0
 	def __init__(self, title, year, genres, artists, gender, disney, lyrics):
 		self.title = title
 		self.year = year
@@ -26,41 +28,52 @@ class Song():
 		self.tokens = word_tokenize(lyrics)
 		assert type(self.tokens) == list
 		stop_words = set(stopwords.words("english"))
-		stop_words.update([',','.','(',')',"'",'"','[',']','===','!','?',"''",'``'])
+		stop_words.update([',','.','(',')',"'",'"','[',']','===','!','?',"''",'``','...'])
 		self.tokens = [ps.stem(token.lower()) for token in self.tokens]
 		self.tokens = [token for token in self.tokens if not token in stop_words]
-		#self.tokencount = {token:self.tokens.count(token) for token in set(self.tokens)}
-		self.update_yeardict()
-		self.update_genredict()
-		self.update_artistdict()
-		self.update_tokendict()
+		self.update_yeardict(self.year)
+		self.update_genredict(self.genres)
+		self.update_artistdict(self.artists)
+		self.update_tokendict(self.tokens)
+		self.update_count(self.disney)
 
-	def update_yeardict(self):
-		if self.year in Song.yeardict:
-			Song.yeardict[self.year] += 1
+	@classmethod
+	def update_yeardict(cls, year):
+		if year in cls.yeardict:
+			cls.yeardict[year] += 1
 		else:
-			Song.yeardict[self.year] = 1
+			cls.yeardict[year] = 1
 
-	def update_genredict(self):
-		for genre in self.genres:
-			if genre in Song.genredict:
-				Song.genredict[genre] += 1
+	@classmethod
+	def update_genredict(cls, genres):
+		for genre in genres:
+			if genre in cls.genredict:
+				cls.genredict[genre] += 1
 			else:
-				Song.genredict[genre] = 1
+				cls.genredict[genre] = 1
 
-	def update_artistdict(self):
-		for artist in self.artists:
-			if artist in Song.artistdict:
-				Song.artistdict[artist] += 1
+	@classmethod
+	def update_artistdict(cls, artists):
+		for artist in artists:
+			if artist in cls.artistdict:
+				cls.artistdict[artist] += 1
 			else:
-				Song.artistdict[artist] = 1
+				cls.artistdict[artist] = 1
 
-	def update_tokendict(self):
-		for token in self.tokens:
-			if token in Song.tokendict:
-				Song.tokendict[token] += self.tokens.count(token)
+	@classmethod
+	def update_tokendict(cls, tokens):
+		for token in set(tokens):
+			if token in cls.tokendict:
+				cls.tokendict[token] += tokens.count(token)
 			else:
-				Song.tokendict[token] = self.tokens.count(token)
+				cls.tokendict[token] = tokens.count(token)
+
+	@classmethod
+	def update_count(cls, disney):
+		if disney:
+			cls.disneycount += 1
+		else:
+			cls.nondisneycount += 1
 
 	def __str__(self):
 		return "<Song: "+self.title+" ("+self.year+")"+" ("+", ".join(self.genres)+")"+" - "+", ".join(self.artists)+" ("+self.gender+")"+" - "+("(" if self.disney else "(Not a ")+"Disney song)>"
@@ -84,7 +97,7 @@ class Song():
 		return (self.title, (combined_subdict, ("Disney" if self.disney else "Not Disney")))
 
 	@classmethod
-	def most_popular(cls, feature, maxcount):
+	def most_popular(cls, feature):
 		if feature == 'years':
 			featurelist = list(cls.yeardict.items())
 		elif feature == 'genres':
@@ -97,7 +110,32 @@ class Song():
 			print("Feature '{feature}' not found.")
 			return False
 		featurelist.sort(key = lambda x: x[1], reverse=True)
-		return [featuretuple[0] for featuretuple in featurelist[:maxcount]]
+		return [featuretuple[0] for featuretuple in featurelist[:int(.2*len(featurelist))]]
+
+class TestSong(Song): #Copy of Song class. Used to distinguish test songs from non-test songs.
+	yeardict = dict()
+	genredict = dict()
+	artistdict = dict()
+	tokendict = dict()
+	disneycount = 0
+	nondisneycount = 0
+
+class Song0(Song): #Copy of Song class. Used to distinguish test songs from non-test songs.
+	yeardict = dict()
+	genredict = dict()
+	artistdict = dict()
+	tokendict = dict()
+	disneycount = 0
+	nondisneycount = 0
+
+class DevSong(Song): #Copy of Song class. Used to distinguish test songs from non-test songs.
+	yeardict = dict()
+	genredict = dict()
+	artistdict = dict()
+	tokendict = dict()
+	disneycount = 0
+	nondisneycount = 0
+
 
 
 def readsong(filepath, filename = None, pr_nf = False, pr_e = False, pr = False):
@@ -130,7 +168,7 @@ def readsong(filepath, filename = None, pr_nf = False, pr_e = False, pr = False)
 		#year = int(year)
 		if pr:
 			print(filename, "sucessfully loaded.")
-		return Song(title, year, genre, artists, gender, disney, lyrics)
+		return title, year, genre, artists, gender, disney, lyrics
 
 def generatefilename(url):
 	filename = parse.unquote(url)
